@@ -1,0 +1,62 @@
+{% extends 'base.html' %}
+
+{% block title %}Повідомлення — OLX{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-10">
+        <h1 class="h3 fw-bold mb-4" style="color: var(--olx-brand);">Повідомлення</h1>
+        
+        <ul class="nav nav-tabs border-bottom mb-4" id="chatTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active fw-bold text-uppercase border-0 py-3" id="buying-tab" data-bs-toggle="tab" data-bs-target="#buying" type="button" role="tab" style="color: var(--olx-brand);">
+                    Купую
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link fw-bold text-uppercase border-0 py-3" id="selling-tab" data-bs-toggle="tab" data-bs-target="#selling" type="button" role="tab" style="color: var(--olx-brand);">
+                    Продаю
+                </button>
+            </li>
+        </ul>
+        
+        <div class="tab-content" id="chatTabsContent">
+            <div class="tab-pane fade show active" id="buying" role="tabpanel">
+                <div class="d-flex flex-column gap-2">
+                    {% for chat in buying_chats %}
+                    <a href="{% url 'chat_detail' chat.id %}" class="text-decoration-none card border-0 shadow-sm p-3 bg-white" style="border-radius: 4px;">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h5 class="fw-bold mb-1 small text-muted">Продавець: {{ chat.listing.seller.username }}</h5>
+                                <div class="fw-semibold m-0" style="color: var(--olx-brand);">{{ chat.listing.title }}</div>
+                            </div>
+                            <i class="bi bi-chevron-right text-muted"></i>
+                        </div>
+                    </a>
+                    {% empty %}
+                    <p class="text-muted py-3">У вас немає активних діалогів про купівлю.</p>
+                    {% endfor %}
+                </div>
+            </div>
+            
+            <div class="tab-pane fade" id="selling" role="tabpanel">
+                <div class="d-flex flex-column gap-2">
+                    {% for chat in selling_chats %}
+                    <a href="{% url 'chat_detail' chat.id %}" class="text-decoration-none card border-0 shadow-sm p-3 bg-white" style="border-radius: 4px;">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h5 class="fw-bold mb-1 small text-muted">Покупець: {{ chat.buyer.username }}</h5>
+                                <div class="fw-semibold m-0" style="color: var(--olx-brand);">{{ chat.listing.title }}</div>
+                            </div>
+                            <i class="bi bi-chevron-right text-muted"></i>
+                        </div>
+                    </a>
+                    {% empty %}
+                    <p class="text-muted py-3">Вам поки ніхто не писав щодо ваших оголошень.</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

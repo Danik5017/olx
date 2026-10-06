@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+
+{% block title %}Чат — OLX{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card border-0 shadow-sm p-3 bg-white mb-3 d-flex flex-row align-items-center justify-content-between" style="border-radius: 4px;">
+            <div>
+                <span class="small text-muted text-uppercase d-block mb-1" style="font-size: 11px;">Діалог щодо оголошення</span>
+                <a href="{% url 'product_detail' chat.listing.id %}" class="fw-bold text-decoration-none h5 m-0" style="color: var(--olx-brand);">{{ chat.listing.title }}</a>
+                <div class="fw-bold text-muted small mt-1">{{ chat.listing.price }} грн.</div>
+            </div>
+            <a href="{% url 'chats_list' %}" class="btn btn-light border small py-2 px-3"><i class="bi bi-arrow-left"></i> До списку</a>
+        </div>
+
+        <!-- Повідомлення оновлюються автоматично кожні 2 секунди -->
+        <div class="card border-0 shadow-sm p-4 bg-white mb-3" style="border-radius: 4px; height: 400px; overflow-y: auto;" id="chat-box"
+             hx-get="{% url 'chat_updates' chat.id %}" 
+             hx-trigger="every 2s" 
+             hx-target="#message-list" 
+             hx-swap="innerHTML">
+            <div id="message-list" class="d-flex flex-column gap-2">
+                {% include 'partials/messages_loop.html' %}
+            </div>
+        </div>
+
+        <div class="card border-0 shadow-sm p-3 bg-white" style="border-radius: 4px;">
+            <form hx-post="{% url 'send_message' chat.id %}" 
+                  hx-target="#message-list" 
+                  hx-swap="beforeend" 
+                  hx-on--after-request="this.reset();"
+                  class="d-flex gap-2">
+                {% csrf_token %}
+                <input type="text" name="text" class="form-control py-3" placeholder="Введіть повідомлення..." required autocomplete="off" style="box-shadow: none;">
+                <button type="submit" class="btn px-4 text-white fw-bold border-0" style="background-color: var(--olx-brand); border-radius: 4px;">
+                    <i class="bi bi-send-fill"></i>
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    const chatBox = document.getElementById('chat-box');
+    chatBox.scrollTop = chatBox.scrollHeight;
+    
+    // Скролимо чат вниз автоматично лише коли надходять нові повідомлення
+    let lastHeight = chatBox.scrollHeight;
+    setInterval(() => {
+        if (chatBox.scrollHeight > lastHeight) {
+            chatBox.scrollTop = chatBox.scrollHeight;
+            lastHeight = chatBox.scrollHeight;
+        }
+    }, 500);
+</script>
+{% endblock %}

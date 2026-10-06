@@ -1,0 +1,79 @@
+{% extends 'base.html' %}
+
+{% block title %}Мій профіль — OLX{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+    <!-- Ліва колонка: Інформація про профіль -->
+    <div class="col-lg-4">
+        <div class="card border-0 shadow-sm p-4 bg-white text-center" style="border-radius: 4px;">
+            <div class="d-flex flex-column align-items-center mb-3">
+                {% if user.profile.avatar %}
+                    <img src="{{ user.profile.avatar.url }}" class="rounded-circle object-fit-cover mb-3" style="width: 100px; height: 100px;" alt="Аватар">
+                {% else %}
+                    <div class="rounded-circle d-flex justify-content-center align-items-center fw-bold text-white mb-3" style="width: 100px; height: 100px; background-color: var(--olx-brand); font-size: 36px;">
+                        {{ user.username|slice:":1"|upper }}
+                    </div>
+                {% endif %}
+                <h2 class="h4 fw-bold m-0" style="color: var(--olx-brand);">{{ user.username }}</h2>
+                <p class="text-muted small">На OLX з {{ user.profile.created_at|date:"M Y" }}</p>
+                
+                <div class="text-warning mb-3">
+                    <i class="bi bi-star-fill"></i> Рейтинг: {{ user.profile.average_rating }} / 5.0
+                </div>
+            </div>
+
+            <div class="text-start border-top pt-3 mb-4">
+                <p class="mb-2"><strong><i class="bi bi-telephone"></i> Телефон:</strong> {{ user.profile.phone_number|default:"Не вказано" }}</p>
+                <p class="mb-0"><strong><i class="bi bi-geo-alt"></i> Місто:</strong> {{ user.profile.city|default:"Не вказано" }}</p>
+            </div>
+
+            <a href="{% url 'edit_profile' %}" class="btn w-100 fw-bold py-2 bg-transparent text-center" style="border: 2px solid var(--olx-brand); color: var(--olx-brand); border-radius: 4px;">
+                Редагувати профіль
+            </a>
+        </div>
+    </div>
+
+    <!-- Права колонка: Мої оголошення -->
+    <div class="col-lg-8">
+        <div class="card border-0 shadow-sm p-4 bg-white" style="border-radius: 4px;">
+            <h3 class="h4 fw-bold mb-4" style="color: var(--olx-brand);">Мої оголошення</h3>
+            
+            <div class="row row-cols-1 row-cols-sm-2 g-3">
+                {% for listing in my_listings %}
+                <div class="col">
+                    <div class="card h-100 border p-2 position-relative" style="border-radius: 4px;">
+                        <a href="{% url 'product_detail' listing.id %}" class="text-decoration-none d-flex flex-column justify-content-between h-100">
+                            <div style="height: 150px;" class="bg-light rounded overflow-hidden position-relative">
+                                {% with main_image=listing.images.all|dictsortreversed:"is_main"|first %}
+                                    {% if main_image %}
+                                        <img src="{{ main_image.image.url }}" class="w-100 h-100 object-fit-cover" alt="{{ listing.title }}">
+                                    {% else %}
+                                        <div class="w-100 h-100 d-flex align-items-center justify-content-center bg-secondary-subtle text-muted">
+                                            <i class="bi bi-image fs-2"></i>
+                                        </div>
+                                    {% endif %}
+                                {% endwith %}
+                                <span class="position-absolute top-0 end-0 bg-dark text-white small px-2 py-1 m-2 rounded bg-opacity-75" style="font-size: 11px;">
+                                    {{ listing.get_status_display }}
+                                </span>
+                            </div>
+                            <div class="pt-2">
+                                <h5 class="text-truncate small m-0 fw-semibold" style="color: var(--olx-brand);">{{ listing.title }}</h5>
+                                <div class="fw-bold my-1" style="color: var(--olx-brand); font-size: 15px;">{{ listing.price }} {{ listing.currency }}</div>
+                                <div class="text-muted small" style="font-size: 11px;"><i class="bi bi-eye"></i> Переглядів: {{ listing.views_count }}</div>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="col-12 text-center py-4">
+                    <p class="text-muted">Ви ще не опублікували жодного оголошення.</p>
+                    <a href="{% url 'create_listing' %}" class="btn text-white fw-bold px-4 py-2" style="background-color: var(--olx-brand); border-radius: 4px;">Додати перше оголошення</a>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

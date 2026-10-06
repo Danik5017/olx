@@ -1,0 +1,62 @@
+{% extends 'base.html' %}
+
+{% block title %}Обрані оголошення — OLX{% endblock %}
+
+{% block content %}
+<div class="mb-4">
+    <h1 class="h3 fw-bold mb-4" style="color: var(--olx-brand);">Обрані оголошення</h1>
+    
+    <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-3">
+        {% for item in favorite_items %}
+        <div class="col">
+            <div class="card h-100 border-0 shadow-sm bg-white overflow-hidden p-2 position-relative" style="border-radius: 4px;">
+                
+                <!-- Кнопка швидкого видалення з обраного через HTMX без оновлення екрана -->
+                <button class="btn p-0 position-absolute top-0 end-0 m-3 z-3 border-0 bg-white rounded-circle d-flex align-items-center justify-content-center shadow-sm" 
+                        style="width: 36px; height: 36px; box-shadow: none;"
+                        hx-post="{% url 'toggle_favorite' item.listing.id %}" 
+                        hx-trigger="click"
+                        hx-id="fav-card-{{ item.listing.id }}"
+                        hx-target="closest .col" 
+                        hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
+                    <i class="bi bi-heart-fill text-danger fs-5"></i>
+                </button>
+
+                <a href="{% url 'product_detail' item.listing.id %}" class="text-decoration-none h-100 d-flex flex-column justify-content-between">
+                    <div style="height: 160px;" class="bg-light rounded overflow-hidden">
+                        {% with main_image=item.listing.images.all|dictsortreversed:"is_main"|first %}
+                            {% if main_image %}
+                                <img src="{{ main_image.image.url }}" class="w-100 h-100 object-fit-cover" alt="{{ item.listing.title }}">
+                            {% else %}
+                                <div class="w-100 h-100 d-flex align-items-center justify-content-center bg-secondary-subtle text-muted">
+                                    <i class="bi bi-image fs-2"></i>
+                                </div>
+                            {% endif %}
+                        {% endwith %}
+                    </div>
+                    
+                    <div class="card-body p-2 pt-3 d-flex flex-column justify-content-between h-100">
+                        <div>
+                            <h5 class="card-title text-truncate small m-0 fw-semibold" style="color: var(--olx-brand);">{{ item.listing.title }}</h5>
+                            <div class="fw-bold my-2" style="color: var(--olx-brand); font-size: 16px;">
+                                {{ item.listing.price }} {{ item.listing.currency }}
+                            </div>
+                        </div>
+                        <div class="d-flex justify-content-between text-muted" style="font-size: 11px;">
+                            <span>{{ item.listing.city }}</span>
+                            <span>{{ item.listing.created_at|date:"d M" }}</span>
+                        </div>
+                    </div>
+                </a>
+
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12 text-center py-5">
+            <p class="text-muted fs-5">У вас немає збережених оголошень.</p>
+            <a href="{% url 'index' %}" class="btn text-white fw-bold px-4 py-2" style="background-color: var(--olx-brand); border-radius: 4px;">Перейти до оголошень</a>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

@@ -4,11 +4,11 @@
 
 {% block content %}
 <div class="row g-4">
-    <!-- Ліва колонка: Галерея, Назва, Опис -->
+    <!-- Ліва колонка: Слайдер фото, Назва, Опис -->
     <div class="col-lg-8">
         <div class="d-flex flex-column gap-3">
             
-            <!-- Слайдер/Галерея зображень через Bootstrap Carousel -->
+            <!-- Слайдер фотографій (Bootstrap Carousel) -->
             <div id="listingCarousel" class="carousel slide card border-0 shadow-sm bg-black overflow-hidden" data-bs-ride="carousel" style="height: 450px; border-radius: 4px;">
                 <div class="carousel-inner h-100">
                     {% for img in listing.images.all %}
@@ -31,11 +31,31 @@
                 {% endif %}
             </div>
 
-            <!-- Блок з назвою, ціною та станом -->
+            <!-- Блок з назвою, ціною, переглядами та ЛАЙКОМ через HTMX -->
             <div class="card border-0 shadow-sm p-4 bg-white" style="border-radius: 4px;">
-                <div class="text-uppercase text-muted small mb-2" style="font-size: 11px; letter-spacing: 0.5px;">
-                    Опубліковано: {{ listing.created_at|date:"d M Y в H:i" }} | <i class="bi bi-eye"></i> Переглядів: {{ listing.views_count }}
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <div class="text-uppercase text-muted small" style="font-size: 11px; letter-spacing: 0.5px;">
+                        Опубліковано: {{ listing.created_at|date:"d M Y в H:i" }} | <i class="bi bi-eye"></i> Переглядів: {{ listing.views_count }}
+                    </div>
+                    
+                    <!-- Кнопка Лайка (Обране) через HTMX -->
+                    {% if user.is_authenticated %}
+                    <button class="btn p-0 border-0" 
+                            hx-post="{% url 'toggle_favorite' listing.id %}" 
+                            hx-target="#favoriteIconContainer" 
+                            hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'
+                            style="box-shadow: none;">
+                        <span id="favoriteIconContainer">
+                            {% include 'partials/favorite_heart.html' %}
+                        </span>
+                    </button>
+                    {% else %}
+                    <a href="{% url 'login' %}" class="btn p-0 border-0" style="box-shadow: none;">
+                        <i class="bi bi-heart fs-3 text-secondary"></i>
+                    </a>
+                    {% endif %}
                 </div>
+
                 <h1 class="h3 fw-bold mb-2" style="color: var(--olx-brand);">{{ listing.title }}</h1>
                 <div class="h2 fw-bold mb-3" style="color: var(--olx-brand);">{{ listing.price }} {{ listing.currency }}</div>
                 
@@ -47,7 +67,7 @@
                 </div>
             </div>
 
-            <!-- Блок з описом -->
+            <!-- Опис товару -->
             <div class="card border-0 shadow-sm p-4 bg-white" style="border-radius: 4px;">
                 <h2 class="h5 fw-bold mb-3 pb-2 border-bottom" style="color: var(--olx-brand);">Опис</h2>
                 <div class="lh-base" style="white-space: pre-line; color: var(--olx-brand); font-size: 16px;">
@@ -58,15 +78,14 @@
         </div>
     </div>
 
-    <!-- Права колонка: Продавець, Рейтинг та Локація -->
+    <!-- Права колонка: Продавець та Локація -->
     <div class="col-lg-4">
         <div class="d-flex flex-column gap-3">
             
-            <!-- Блок користувача (Продавця) -->
+            <!-- Картка продавця -->
             <div class="card border-0 shadow-sm p-4 bg-white" style="border-radius: 4px;">
                 <h2 class="text-uppercase text-muted mb-3" style="font-size: 11px; font-weight: 700; letter-spacing: 0.5px;">Продавець</h2>
                 <div class="d-flex align-items-center gap-3 mb-4">
-                    <!-- Аватарка: якщо завантажена користувачем, інакше перша літера -->
                     {% if listing.seller.profile.avatar %}
                         <img src="{{ listing.seller.profile.avatar.url }}" class="rounded-circle object-fit-cover" style="width: 48px; height: 48px;" alt="Аватар">
                     {% else %}
@@ -79,17 +98,16 @@
                             {{ listing.seller.first_name|default:listing.seller.username }}
                         </div>
                         <div class="text-muted" style="font-size: 12px;">на OLX з {{ listing.seller.profile.created_at|date:"M Y" }}</div>
-                        <!-- Рейтинг на основі вашого @property average_rating -->
                         <div class="text-warning small mt-1">
                             <i class="bi bi-star-fill"></i> {{ listing.seller.profile.average_rating }} / 5.0
                         </div>
                     </div>
                 </div>
                 
-                <!-- Кнопки зв'язку -->
+                <!-- Номер телефону з прихованням -->
                 {% if listing.seller.profile.phone_number %}
                 <button class="btn w-100 fw-bold py-3 mb-2 text-white border-0 text-center" style="background-color: var(--olx-brand); font-size: 16px; border-radius: 4px;" onclick="this.innerText='{{ listing.seller.profile.phone_number }}'">
-                    Показати телефон
+                    Показати telephone
                 </button>
                 {% else %}
                 <button class="btn w-100 fw-bold py-3 mb-2 text-white border-0 text-center disabled" style="background-color: var(--olx-light-gray); font-size: 16px; border-radius: 4px;">
@@ -102,7 +120,7 @@
                 </a>
             </div>
 
-            <!-- Блок розташування -->
+            <!-- Місцезнаходження -->
             <div class="card border-0 shadow-sm p-4 bg-white" style="border-radius: 4px;">
                 <h2 class="h5 fw-bold mb-3" style="color: var(--olx-brand);">Місцезнаходження</h2>
                 <div class="d-flex align-items-start gap-2">
