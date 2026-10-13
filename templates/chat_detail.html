@@ -5,6 +5,7 @@
 {% block content %}
 <div class="row justify-content-center">
     <div class="col-lg-8">
+        <!-- Картка товару, за яким ведеться діалог -->
         <div class="card border-0 shadow-sm p-3 bg-white mb-3 d-flex flex-row align-items-center justify-content-between" style="border-radius: 4px;">
             <div>
                 <span class="small text-muted text-uppercase d-block mb-1" style="font-size: 11px;">Діалог щодо оголошення</span>
@@ -14,25 +15,26 @@
             <a href="{% url 'chats_list' %}" class="btn btn-light border small py-2 px-3"><i class="bi bi-arrow-left"></i> До списку</a>
         </div>
 
-        <!-- Повідомлення оновлюються автоматично кожні 2 секунди -->
+        <!-- Вікно історії повідомлень (Фонове опитування сервера кожні 2 секунди) -->
         <div class="card border-0 shadow-sm p-4 bg-white mb-3" style="border-radius: 4px; height: 400px; overflow-y: auto;" id="chat-box"
              hx-get="{% url 'chat_updates' chat.id %}" 
              hx-trigger="every 2s" 
              hx-target="#message-list" 
              hx-swap="innerHTML">
-            <div id="message-list" class="d-flex flex-column gap-2">
+            <div id="message-list" class="d-flex flex-column gap-2 w-100">
                 {% include 'partials/messages_loop.html' %}
             </div>
         </div>
 
+        <!-- Форма відправки, яка забирає CSRF зсередини інпуту -->
         <div class="card border-0 shadow-sm p-3 bg-white" style="border-radius: 4px;">
             <form hx-post="{% url 'send_message' chat.id %}" 
                   hx-target="#message-list" 
                   hx-swap="beforeend" 
-                  hx-on--after-request="this.reset();"
-                  class="d-flex gap-2">
+                  hx-on--after-request="document.getElementById('message-input').value = ''; document.getElementById('no-messages')?.remove();"
+                  class="d-flex gap-2 m-0">
                 {% csrf_token %}
-                <input type="text" name="text" class="form-control py-3" placeholder="Введіть повідомлення..." required autocomplete="off" style="box-shadow: none;">
+                <input type="text" id="message-input" name="text" class="form-control py-3" placeholder="Введіть повідомлення..." required autocomplete="off" style="box-shadow: none;">
                 <button type="submit" class="btn px-4 text-white fw-bold border-0" style="background-color: var(--olx-brand); border-radius: 4px;">
                     <i class="bi bi-send-fill"></i>
                 </button>
@@ -45,13 +47,12 @@
     const chatBox = document.getElementById('chat-box');
     chatBox.scrollTop = chatBox.scrollHeight;
     
-    // Скролимо чат вниз автоматично лише коли надходять нові повідомлення
     let lastHeight = chatBox.scrollHeight;
     setInterval(() => {
         if (chatBox.scrollHeight > lastHeight) {
             chatBox.scrollTop = chatBox.scrollHeight;
             lastHeight = chatBox.scrollHeight;
         }
-    }, 500);
+    }, 400);
 </script>
 {% endblock %}

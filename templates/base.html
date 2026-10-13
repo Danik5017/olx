@@ -11,8 +11,7 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     
     <!-- Підключення HTMX -->
-    <script src="https://unpkg.com" integrity="sha384-HGfztofot7shOIYCH8wOHJKX79Nl9QXxgUt75JI7C9gKk04FM27X8A6EAMv7vvIF" crossorigin="anonymous"></script>
-
+    <script src="https://cdn.jsdelivr.net/npm/htmx.org@2.0.11/dist/htmx.min.js" integrity="sha384-2OatzQy1H+Zd/IIrjr1TcuDGqLXeHhbooAyJY1KdQMKnr4LZ22k31GBLdYKHmVjg" crossorigin="anonymous"></script>
     <!-- Налаштування палітри кольорів OLX -->
     <style>
         :root {
@@ -33,7 +32,7 @@
     {% load static %}
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
 </head>
-<body>
+<body hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
     {% include 'menu.html' %}
     <main class="container my-4">
     {% block content %}

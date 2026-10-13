@@ -1,5 +1,5 @@
 {% for message in messages %}
     {% include 'partials/message_item.html' %}
 {% empty %}
-    <div class="text-center text-muted py-5">Напишіть перше повідомлення співрозмовнику.</div>
+    <div class="text-center text-muted py-5 w-100" id="no-messages">Напишіть перше повідомлення співрозмовнику.</div>
 {% endfor %}

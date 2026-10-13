@@ -1,8 +1,19 @@
-<div class="d-flex {% if message.sender == request.user %}justify-content-end{% else %}justify-content-start{% endif %}">
-    <div class="p-3 rounded shadow-sm max-width-75" 
-         style="{% if message.sender == request.user %}background-color: var(--olx-brand); color: #fff; border-radius: 12px 12px 0 12px !important;{% else %}background-color: var(--olx-bg); color: var(--olx-text); border-radius: 12px 12px 12px 0 !important;{% endif %} font-size: 15px;">
-        <div class="fw-semibold small mb-1" style="font-size: 11px; opacity: 0.8;">{{ message.sender.username }}</div>
-        <div>{{ message.text }}</div>
-        <div class="text-end small mt-1" style="font-size: 10px; opacity: 0.6;">{{ message.created_at|date:"H:i" }}</div>
+{% if message.sender == request.user %}
+    <!-- Моє повідомлення (вирівняне праворуч) -->
+    <div class="d-flex justify-content-end">
+        <div class="p-3 rounded shadow-sm" style="max-width: 75%; font-size: 15px; background-color: var(--olx-brand); color: #ffffff; border-bottom-right-radius: 0px !important;">
+            <div class="fw-semibold small mb-1" style="font-size: 11px; opacity: 0.8;">{{ message.sender.username }}</div>
+            <div>{{ message.text }}</div>
+            <div class="text-end small mt-1" style="font-size: 10px; opacity: 0.6;">{{ message.created_at|date:"H:i" }}</div>
+        </div>
     </div>
-</div>
+{% else %}
+    <!-- Повідомлення від іншого користувача (вирівняне ліворуч) -->
+    <div class="d-flex justify-content-start">
+        <div class="p-3 rounded shadow-sm" style="max-width: 75%; font-size: 15px; background-color: var(--olx-bg); color: var(--olx-text); border-bottom-left-radius: 0px !important;">
+            <div class="fw-semibold small mb-1" style="font-size: 11px; opacity: 0.8;">{{ message.sender.username }}</div>
+            <div>{{ message.text }}</div>
+            <div class="text-end small mt-1" style="font-size: 10px; opacity: 0.6;">{{ message.created_at|date:"H:i" }}</div>
+        </div>
+    </div>
+{% endif %}

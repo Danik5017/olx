@@ -7,6 +7,7 @@
     <div class="col-lg-10">
         <h1 class="h3 fw-bold mb-4" style="color: var(--olx-brand);">Повідомлення</h1>
         
+        <!-- Вкладки розділення Купую / Продаю -->
         <ul class="nav nav-tabs border-bottom mb-4" id="chatTabs" role="tablist">
             <li class="nav-item" role="presentation">
                 <button class="nav-link active fw-bold text-uppercase border-0 py-3" id="buying-tab" data-bs-toggle="tab" data-bs-target="#buying" type="button" role="tab" style="color: var(--olx-brand);">
@@ -21,6 +22,7 @@
         </ul>
         
         <div class="tab-content" id="chatTabsContent">
+            <!-- ТАБ: КУПУЮ -->
             <div class="tab-pane fade show active" id="buying" role="tabpanel">
                 <div class="d-flex flex-column gap-2">
                     {% for chat in buying_chats %}
@@ -39,6 +41,7 @@
                 </div>
             </div>
             
+            <!-- ТАБ: ПРОДАЮ -->
             <div class="tab-pane fade" id="selling" role="tabpanel">
                 <div class="d-flex flex-column gap-2">
                     {% for chat in selling_chats %}
