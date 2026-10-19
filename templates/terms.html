@@ -1,0 +1,91 @@
+{% extends 'base.html' %}
+{% block title %}Умови користування — OLX аналог{% endblock %}
+
+{% block content %}
+<div class="container my-5" style="font-family: 'Roboto', sans-serif;">
+    <div class="row justify-content-center">
+        <div class="col-md-9 col-lg-8">
+            <!-- Головна картка з текстом умов -->
+            <div class="card p-4 p-md-5 shadow-sm border-0">
+                <h1 class="fw-bold mb-4 text-dark" style="font-size: 28px;">Умови користування сервісом</h1>
+                <p class="text-muted small mb-4">Останнє оновлення: Жовтень 2026 року</p>
+
+                <hr class="mb-4" style="opacity: 0.1;">
+
+                <!-- Розділ 1 -->
+                <div class="mb-4">
+                    <h4 class="fw-bold text-dark mb-2" style="font-size: 18px;">1. Загальні положення</h4>
+                    <p class="text-secondary" style="font-size: 15px; line-height: 1.6;">
+                        Ця угода користувача є юридично обов'язковим договором між вами (Користувачем) та нашою платформою оголошень. Реєструючись на сайті або використовуючи його функції, ви повністю погоджуєтеся з цими умовами. Якщо ви не згодні з правилами, будь ласка, припиніть використання сервісу.
+                    </p>
+                </div>
+
+                <!-- Розділ 2 -->
+                <div class="mb-4">
+                    <h4 class="fw-bold text-dark mb-2" style="font-size: 18px;">2. Реєстрація та безпека акаунта</h4>
+                    <p class="text-secondary" style="font-size: 15px; line-height: 1.6;">
+                        Користувач зобов'язується вказувати правдиву та актуальну інформацію під час реєстрації та редагування свого профілю. Забороняється передавати дані свого акаунта третім особам. Ви несете повну відповідальність за всі дії, вчинені під вашим профілем.
+                    </p>
+                </div>
+
+                <!-- Розділ 3 -->
+                <div class="mb-4">
+                    <h4 class="fw-bold text-dark mb-2" style="font-size: 18px;">3. Правила публікації оголошень</h4>
+                    <p class="text-secondary" style="font-size: 15px; line-height: 1.6;">
+                        При створенні оголошень забороняється публікувати:
+                    </p>
+                    <ul class="text-secondary ps-3" style="font-size: 15px; line-height: 1.6;">
+                        <li class="mb-1">Товари або послуги, які порушують чинне законодавство України.</li>
+                        <li class="mb-1">Неправдиву, завідомо шахрайську або таку, що вводить в оману, інформацію про товар.</li>
+                        <li class="mb-1">Оголошення, що містять нецензурну лексику, образи або спам-посилання.</li>
+                        <li class="mb-1">Дублікати однакових оголошень від одного користувача.</li>
+                    </ul>
+                </div>
+
+                <!-- Розділ 4 -->
+                <div class="mb-4">
+                    <h4 class="fw-bold text-dark mb-2" style="font-size: 18px;">4. Модерація та блокування</h4>
+                    <p class="text-secondary" style="font-size: 15px; line-height: 1.6;">
+                        Адміністрація сайту залишає за собою право видаляти оголошення, деактивувати їх, переносити в архів або повністю блокувати акаунти користувачів, які систематично порушують ці Умови користування, без попереднього попередження та пояснення причин.
+                    </p>
+                </div>
+
+                <!-- Розділ 5 -->
+                <div class="mb-4">
+                    <h4 class="fw-bold text-dark mb-2" style="font-size: 18px;">5. Система відгуків та повідомлень</h4>
+                    <p class="text-secondary" style="font-size: 15px; line-height: 1.6;">
+                        Залишаючи відгуки іншим продавцям або спілкуючись у внутрішніх чатах платформи, користувачі зобов'язані дотримуватися культури спілкування. Накрутка рейтингу, написання неправдивих негативних відгуків конкурентам або використання спам-скриптів у повідомленнях призведе до негайного блокування профілю.
+                    </p>
+                </div>
+
+                <hr class="mt-4 mb-4" style="opacity: 0.1;">
+
+                <!-- Кнопка динамічного повернення назад -->
+                <div class="text-center">
+                    <button type="button" onclick="window.history.back();" class="btn fw-bold btn-olx-back px-4 py-2">
+                        Повернутися назад
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Стилізація контурної кнопки в стилі OLX */
+    .btn-olx-back {
+        color: #002f34 !important;
+        background-color: transparent !important;
+        border: 2px solid #002f34 !important;
+        border-radius: 4px !important;
+        font-size: 14px;
+        transition: all 0.15s ease-in-out;
+    }
+    
+    /* Ефект наведення на кнопку (повне зафарбовування) */
+    .btn-olx-back:hover {
+        color: #ffffff !important;
+        background-color: #002f34 !important;
+    }
+</style>
+{% endblock %}

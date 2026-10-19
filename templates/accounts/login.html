@@ -1,11 +1,104 @@
 {% extends 'base.html' %}
+{% block title %}Увійти — OLX{% endblock %} 
 
-{% block content %}
-<h2>Увійти в профіль</h2>
-<form method="post">
-    {% csrf_token %}
-    {{form.as_div}}
-    <button type="submit" class="btn btn-primary">Увійти</button>
-    <a href="{% url 'register' %}" class="btn btn-link">Зареєструватися</a>
-</form>
+{% block content %} 
+<div class="row justify-content-center my-5" style="font-family: 'Roboto', sans-serif;">
+    <div class="col-md-5 col-sm-8 col-12 d-flex justify-content-center">
+        
+        <!-- Головна біла картка форми -->
+        <div class="bg-white p-4 p-md-5 shadow-sm" style="width: 100%; max-width: 450px; border-radius: 4px;">
+            
+            <!-- Перемикач Увійти / Зареєструватися -->
+            <div class="d-flex justify-content-center mb-4 text-center" style="font-size: 16px;">
+                <a href="#" class="w-50 pb-2 text-decoration-none fw-bold active" style="color: #002f34; border-bottom: 3px solid #002f34;">Увійти</a>
+                <a href="{% url 'register' %}" class="w-50 pb-2 text-decoration-none fw-bold" style="color: #406367; border-bottom: 2px solid transparent; opacity: 0.5;">Зареєструватися</a>
+            </div>
+
+            <!-- Форма входу Django -->
+            <form method="POST" novalidate>
+                {% csrf_token %}
+                
+                {% for field in form %}
+                <div class="mb-4">
+                    <label for="{{ field.id_for_label }}" class="form-label small fw-bold mb-2" style="color: #002f34; font-size: 14px; display: block;">
+                        {{ field.label }}
+                    </label>
+                    
+                    <div class="position-relative d-flex align-items-center olx-field-wrapper">
+                        {{ field }}
+
+                        <!-- Показ іконки ока для паролів -->
+                        {% if "password" in field.name %}
+                        <button type="button" class="btn position-absolute end-0 border-0 text-muted px-3 h-100 d-flex align-items-center" style="background: transparent; z-index: 10;" onclick="togglePassword(this)">
+                            <svg width="20" height="20" fill="currentColor" viewBox="0 0 16 16">
+                                <path d="M16 8s-3-5.5-8-5.5S0 8 0 8s3 5.5 8 5.5S16 8 16 8zM1.173 8a13.133 13.133 0 0 1 1.66-2.043C4.12 4.668 5.88 4 8 4c2.12 0 3.879.668 5.168 1.957A13.133 13.133 0 0 1 14.828 8c-.058.087-.122.183-.195.288-.335.48-.83 1.12-1.465 1.755C11.879 11.332 10.119 12 8 12c-2.12 0-3.879-.668-5.168-1.957A13.134 13.134 0 0 1 1.172 8z"/>
+                                <path d="M8 5.5a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5zM4.5 8a3.5 3.5 0 1 1 7 0 3.5 3.5 0 0 1-7 0z"/>
+                            </svg>
+                        </button>
+                        {% endif %}
+                    </div>
+
+                    {% if "password" in field.name %}
+                    <div class="mt-2 text-start">
+                        <a href="#" class="small text-decoration-none fw-bold text-dark" style="font-size: 14px;">Забули пароль?</a>
+                    </div>
+                    {% endif %}
+
+                    {% if field.errors %}
+                    <div class="text-danger small mt-1" style="font-size: 12px; font-weight: 500;">
+                        {{ field.errors|first }}
+                    </div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+
+                <!-- Головна кнопка входу -->
+                <button type="submit" class="btn w-100 py-3 text-white fw-bold border-0 mt-3 btn-olx-submit" style="background-color: #002f34 !important; font-size: 16px; border-radius: 4px;">
+                    Увійти
+                </button>
+            </form>
+
+            <!-- Дисклеймер щодо умов -->
+            <div class="text-center mt-4 text-muted mx-auto" style="font-size: 12px; max-width: 320px; line-height: 1.4;">
+                Під час входу ви погоджуєтеся з нашими <a href="{% url 'terms' %}" class="text-decoration-underline fw-bold text-dark">Умовами користування</a>.
+            </div>
+            
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Перезапис стилів інпутів під твої скріншоти */
+    .olx-field-wrapper input {
+        width: 100% !important;
+        padding: 14px 16px !important;
+        font-size: 16px !important;
+        background-color: #f2f4f5 !important;
+        border: 2px solid #f2f4f5 !important;
+        border-radius: 4px !important;
+        color: #002f34 !important;
+        font-weight: 500 !important;
+        box-shadow: none !important;
+        outline: none !important;
+        transition: border-color 0.15s ease, background-color 0.15s ease !important;
+    }
+    .olx-field-wrapper input:focus {
+        background-color: #ffffff !important;
+        border-color: #002f34 !important;
+    }
+    .btn-olx-submit:hover {
+        background-color: #001f22 !important;
+    }
+</style>
+
+<script>
+function togglePassword(button) {
+    const input = button.parentElement.querySelector('input');
+    if (input.type === "password") {
+        input.type = "text";
+    } else {
+        input.type = "password";
+    }
+}
+</script>
 {% endblock %}

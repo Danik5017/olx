@@ -4,7 +4,9 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.core.validators import MinValueValidator, MaxValueValidator
 
+# =====================================================================
 # 1. ПРОФІЛЬ КОРИСТУВАЧА
+# =====================================================================
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
     phone_number = models.CharField(max_length=20, blank=True, null=True)
@@ -37,7 +39,9 @@ def save_user_profile(sender, instance, **kwargs):
         instance.profile.save()
 
 
+# =====================================================================
 # 2. КАТЕГОРІЇ ТА ПІДКАТЕГОРІЇ
+# =====================================================================
 class Category(models.Model):
     name = models.CharField(max_length=100, unique=True)
     slug = models.SlugField(max_length=100, unique=True)
@@ -52,7 +56,9 @@ class Category(models.Model):
         return self.name
 
 
+# =====================================================================
 # 3. ОГОЛОШЕННЯ
+# =====================================================================
 class Listing(models.Model):
     class Condition(models.TextChoices):
         NEW = 'NEW', 'Нове'
@@ -90,7 +96,9 @@ class Listing(models.Model):
         return self.title
 
 
+# =====================================================================
 # 4. ЗОБРАЖЕННЯ ОГОЛОШЕННЯ
+# =====================================================================
 class ListingImage(models.Model):
     listing = models.ForeignKey(Listing, on_delete=models.CASCADE, related_name='images')
     image = models.ImageField(upload_to='listings/')
@@ -100,7 +108,9 @@ class ListingImage(models.Model):
         return f"Image for {self.listing.title}"
 
 
+# =====================================================================
 # 5. ОБРАНЕ
+# =====================================================================
 class Favorite(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='favorites')
     listing = models.ForeignKey(Listing, on_delete=models.CASCADE, related_name='favorited_by')
@@ -113,7 +123,9 @@ class Favorite(models.Model):
         return f"{self.user.username} saved {self.listing.title}"
 
 
+# =====================================================================
 # 6. ВІДГУКИ ТА ОЦІНКИ
+# =====================================================================
 class Review(models.Model):
     author = models.ForeignKey(User, on_delete=models.CASCADE, related_name='left_reviews')
     target_user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='received_reviews')
@@ -121,11 +133,16 @@ class Review(models.Model):
     text = models.TextField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
+    class Meta:
+        ordering = ['-created_at']
+
     def __str__(self):
         return f"Review from {self.author.username} to {self.target_user.username}"
 
 
+# =====================================================================
 # 7. СИСТЕМА ЧАТІВ ТА ПОВІДОМЛЕНЬ
+# =====================================================================
 class Chat(models.Model):
     listing = models.ForeignKey(Listing, on_delete=models.CASCADE, related_name='chats')
     buyer = models.ForeignKey(User, on_delete=models.CASCADE, related_name='buyer_chats')
