@@ -1,0 +1,103 @@
+{% extends 'base.html' %}
+
+{% block title %}Результати пошуку | OLX.ua{% endblock %}
+
+{% block content %}
+<div class="row g-4 mt-2">
+    <!-- Ліва панель: OLX Фільтри -->
+    <aside class="col-lg-3 col-md-4">
+        <div class="card border-0 p-3 shadow-sm bg-white" style="border-radius: 8px;">
+            <h5 class="fw-bold mb-3" style="color: var(--olx-brand);">Фільтри</h5>
+            <form method="GET" action="{% url 'search_listings' %}">
+                <!-- Приховуємо і зберігаємо поточний рядок q -->
+                <input type="hidden" name="q" value="{{ query|default:'' }}">
+
+                <!-- Випадаючий список категорій у фільтрах -->
+                <div class="mb-3">
+                    <label class="form-label small fw-semibold text-muted">Категорія</label>
+                    <select name="category" class="form-select border-secondary-subtle">
+                        <option value="">Всі категорії</option>
+                        {% for cat in categories %}
+                            {% if not cat.parent %}
+                                <option value="{{ cat.id }}" {% if current_category == cat.id|stringformat:"s" %}selected{% endif %}>
+                                    {{ cat.name }}
+                                </option>
+                                {% for subcat in cat.subcategories.all %}
+                                    <option value="{{ subcat.id }}" {% if current_category == subcat.id|stringformat:"s" %}selected{% endif %}>
+                                        &nbsp;&nbsp;&nbsp;&nbsp;— {{ subcat.name }}
+                                    </option>
+                                {% endfor %}
+                            {% endif %}
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- Фільтр цін від та до -->
+                <div class="mb-3">
+                    <label class="form-label small fw-semibold text-muted">Ціна (грн)</label>
+                    <div class="d-flex gap-2">
+                        <input type="number" name="price_min" value="{{ request.GET.price_min }}" class="form-control border-secondary-subtle" placeholder="від">
+                        <input type="number" name="price_max" value="{{ request.GET.price_max }}" class="form-control border-secondary-subtle" placeholder="до">
+                    </div>
+                </div>
+
+                <!-- Стан товару -->
+                <div class="mb-3">
+                    <label class="form-label small fw-semibold text-muted">Стан</label>
+                    <select name="condition" class="form-select border-secondary-subtle">
+                        <option value="">Будь-який</option>
+                        <option value="NEW" {% if request.GET.condition == 'NEW' %}selected{% endif %}>Нове</option>
+                        <option value="USED" {% if request.GET.condition == 'USED' %}selected{% endif %}>Вживане</option>
+                    </select>
+                </div>
+
+                <!-- Фільтр за містом -->
+                <div class="mb-4">
+                    <label class="form-label small fw-semibold text-muted">Місто</label>
+                    <input type="text" name="city" value="{{ request.GET.city|default:'' }}" class="form-control border-secondary-subtle" placeholder="Наприклад: Київ">
+                </div>
+
+                <button type="submit" class="btn w-100 fw-bold py-2 text-dark" style="background-color: var(--olx-mint);">
+                    Застосувати
+                </button>
+            </form>
+        </div>
+    </aside>
+
+    <!-- Права панель: Стрічка оголошень -->
+    <main class="col-lg-9 col-md-8">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h4 class="fw-bold m-0">Результати пошуку:</h4>
+            <span class="badge text-bg-dark px-3 py-2 fs-6">Знайдено: {{ listings.count }}</span>
+        </div>
+
+        <div class="d-flex flex-column gap-3">
+            {% for listing in listings %}
+                <div class="card border-0 shadow-sm p-3 bg-white" style="border-radius: 8px;">
+                    <div class="d-flex flex-column flex-sm-row gap-3">
+                        <div class="listing-info flex-grow-1">
+                            <h5 class="fw-bold mb-2">
+                                <a href="{% url 'product_detail' listing.pk %}" class="text-decoration-none" style="color: var(--olx-brand);">
+                                    {{ listing.title }}
+                                </a>
+                            </h5>
+                            <p class="text-muted small mb-3">{{ listing.description|truncatechars:180 }}</p>
+                            <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mt-auto">
+                                <span class="text-muted small"><i class="bi bi-geo-alt me-1"></i>{{ listing.city }} | Стан: {{ listing.get_condition_display }}</span>
+                                <h4 class="fw-bold m-0" style="color: var(--olx-brand);">{{ listing.price }} {{ listing.currency }}</h4>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% empty %}
+                <div class="text-center py-5 bg-white rounded shadow-sm w-100">
+                    <i class="bi bi-search text-muted" style="font-size: 3rem;"></i>
+                    <h5 class="fw-bold mt-3">Нічого не знайдено</h5>
+                    <p class="text-muted">За вашими критеріями оголошень не знайдено.</p>
+                    <a href="{% url 'index' %}" class="btn fw-bold px-4 text-dark mt-2" style="background-color: var(--olx-mint);">На головну</a>
+                </div>
+            {% endfor %}
+        </div>
+    </main>
+</div>
+{% endblock %}

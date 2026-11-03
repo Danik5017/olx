@@ -4,15 +4,18 @@ from . import views
 urlpatterns = [
     # Головна сторінка та деталі оголошення
     path('', views.index_view, name='index'),
+    path('search/', views.search_listings_view, name='search_listings'),  # Окрема сторінка пошуку
     path('listing/<int:pk>/', views.product_detail_view, name='product_detail'),
     path('listing/<int:pk>/favorite/', views.toggle_favorite_view, name='toggle_favorite'),
     path('listing/add/', views.create_listing_view, name='create_listing'),
     path('favorites/', views.favorites_view, name='favorites'),
     
     # Система профілів та відгуків
-    path('profile/', views.profile_view, name='profile'),
+    path('profile/', views.profile_view, name='profile_current'),  # Власний профіль БЕЗ ID
+    path('profile/<int:user_id>/', views.profile_view, name='profile'),  # Чужий профіль З ID
     path('profile/edit/', views.edit_profile_view, name='edit_profile'),
-    path('profile/<int:user_id>/add-review/', views.add_review_view, name='add_review'), # Доданий маршрут для відгуків
+    path('profile/<int:user_id>/add-review/', views.add_review_view, name='add_review'),
+
     
     # URL системи повідомлень
     path('chats/', views.chats_list_view, name='chats_list'),

@@ -1,103 +1,70 @@
 {% extends 'base.html' %}
 
-{% block title %}OLX.ua — Сервіс оголошень України: головна сторінка{% endblock %}
+{% block title %}Головна сторінка | OLX.ua{% endblock %}
 
 {% block content %}
-<!-- БЛОК ПОШУКУ -->
-<div class="card border-0 shadow-sm p-4 mb-4 bg-white" style="border-radius: 4px;">
-    <form method="GET" action="#" class="row g-2 align-items-center">
-        <div class="col-md-5">
-            <div class="input-group">
-                <span class="input-group-text bg-transparent border-end-0 text-muted"><i class="bi bi-search"></i></span>
-                <input type="text" name="search" class="form-control border-start-0 ps-0 py-3" style="box-shadow: none;" placeholder="Що шукаєте?">
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="input-group">
-                <span class="input-group-text bg-transparent border-end-0 text-muted"><i class="bi bi-geo-alt"></i></span>
-                <input type="text" name="location" class="form-control border-start-0 ps-0 py-3" style="box-shadow: none;" placeholder="Уся Україна">
-            </div>
-        </div>
-        <div class="col-md-3">
-            <button type="submit" class="btn w-100 py-3 text-white fw-bold border-0" style="background-color: var(--olx-brand); font-size: 16px; border-radius: 4px;">
-                Шукати <i class="bi bi-search ms-1"></i>
-            </button>
-        </div>
-    </form>
-</div>
-
-<!-- БЛОК ГОЛОВНИХ КАТЕГОРІЙ -->
-<div class="mb-5 text-center">
-    <h2 class="h4 fw-bold mb-4" style="color: var(--olx-brand);">Головні категорії</h2>
-    <div class="row row-cols-2 row-cols-sm-3 row-cols-md-6 g-3 justify-content-center">
-        {% for category in categories %}
-            {% if not category.parent %}
+<!-- Блок головних категорій у вигляді великих клікабельних плиток-квадратиків -->
+<div class="container mt-2">
+    <h3 class="text-center fw-bold mb-4" style="color: var(--olx-brand);">Головні категорії</h3>
+    <div class="row row-cols-2 row-cols-md-4 row-cols-lg-6 g-3 justify-content-center">
+        
+        {% for cat in categories %}
             <div class="col">
-                <a href="#" class="text-decoration-none text-center d-block p-3 bg-white rounded shadow-sm h-100" style="color: var(--olx-brand);">
-                    <div class="fs-1 text-primary mb-2">
-                        {% if category.slug == 'auto' %}<i class="bi bi-car-front"></i>
-                        {% elif category.slug == 'realty' %}<i class="bi bi-house"></i>
-                        {% elif category.slug == 'electronics' %}<i class="bi bi-laptop"></i>
-                        {% elif category.slug == 'jobs' %}<i class="bi bi-briefcase"></i>
-                        {% else %}<i class="bi bi-tags"></i>{% endif %}
+                <!-- Клік по квадратику веде на сторінку /search/ з обраною категорією -->
+                <a href="{% url 'search_listings' %}?category={{ cat.id }}" class="text-decoration-none">
+                    <div class="card h-100 text-center border-0 shadow-sm p-4 bg-white btn-category-item" style="border-radius: 8px; cursor: pointer; transition: all 0.2s ease-in-out;">
+                        
+                        <!-- Синя іконка-ярлик -->
+                        <div class="mb-3 text-primary fs-2">
+                            <i class="bi bi-tag-fill" style="color: #3a77ff;"></i>
+                        </div>
+                        
+                        <!-- Назва категорії -->
+                        <div class="fw-bold text-dark" style="font-size: 14px; line-height: 1.2;">
+                            {{ cat.name }}
+                        </div>
+                        
                     </div>
-                    <div class="small fw-bold">{{ category.name }}</div>
                 </a>
             </div>
-            {% endif %}
         {% empty %}
-            <div class="col-12 text-muted">Категорії ще не створено</div>
+            <p class="text-center text-muted w-100">Категорії ще не завантажені.</p>
         {% endfor %}
+        
     </div>
 </div>
 
-<!-- СІТКА ОГОЛОШЕНЬ З БАЗИ ДАНИХ (Модель Listing) -->
-<div class="mb-4">
-    <h2 class="h4 fw-bold text-center mb-4" style="color: var(--olx-brand);">Останні оголошення</h2>
-    <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-3">
-        
+<!-- Загальна стрічка останніх оголошень на головній сторінці -->
+<div class="container mt-5">
+    <h4 class="fw-bold mb-4" style="color: var(--olx-brand);">Останні оголошення</h4>
+    <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-4">
         {% for listing in listings %}
-        <div class="col">
-            <!-- Перехід за slug або за id на детальну сторінку -->
-            <a href="{% url 'product_detail' listing.id %}" class="text-decoration-none card h-100 border-0 shadow-sm bg-white overflow-hidden p-2" style="border-radius: 4px;">
-                <div style="height: 160px;" class="bg-light rounded overflow-hidden position-relative">
-                    
-                    <!-- Логіка виведення головного або першого фото -->
-                    {% with main_image=listing.images.all|dictsortreversed:"is_main"|first %}
-                        {% if main_image %}
-                            <img src="{{ main_image.image.url }}" class="w-100 h-100 object-fit-cover" alt="{{ listing.title }}">
-                        {% else %}
-                            <div class="w-100 h-100 d-flex align-items-center justify-content-center bg-secondary-subtle text-muted">
-                                <i class="bi bi-image fs-2"></i>
-                            </div>
-                        {% endif %}
-                    {% endwith %}
-                    
-                    <!-- Бейдж "Доставка ОЛХ", якщо активовано -->
-                    {% if listing.olx_delivery %}
-                        <span class="position-absolute bottom-0 start-0 bg-info text-dark fw-bold small px-2 py-1 m-2 rounded" style="font-size: 11px;">OLX Доставка</span>
-                    {% endif %}
-                </div>
-                <div class="card-body p-2 d-flex flex-column justify-content-between">
-                    <div>
-                        <h5 class="card-title text-truncate small m-0 fw-semibold" style="color: var(--olx-brand);">{{ listing.title }}</h5>
-                        <div class="fw-bold my-2" style="color: var(--olx-brand); font-size: 16px;">
-                            {{ listing.price }} {{ listing.currency }}
+            <div class="col">
+                <div class="card h-100 border-0 shadow-sm bg-white" style="border-radius: 8px; overflow: hidden;">
+                    <div class="card-body d-flex flex-column p-3">
+                        <h5 class="card-title fw-bold fs-6 mb-2">
+                            <a href="{% url 'product_detail' listing.pk %}" class="text-decoration-none text-truncate d-block" style="color: var(--olx-brand);">
+                                {{ listing.title }}
+                            </a>
+                        </h5>
+                        <p class="text-muted small mb-3"><i class="bi bi-geo-alt me-1"></i>{{ listing.city }}</p>
+                        <div class="d-flex align-items-center justify-content-between mt-auto">
+                            <h5 class="fw-bold m-0" style="color: var(--olx-brand);">{{ listing.price }} {{ listing.currency }}</h5>
                         </div>
                     </div>
-                    <div class="d-flex justify-content-between text-muted" style="font-size: 11px;">
-                        <span>{{ listing.city }}{% if listing.district %}, {{ listing.district }}{% endif %}</span>
-                        <span>{{ listing.created_at|date:"d M" }}</span>
-                    </div>
                 </div>
-            </a>
-        </div>
+            </div>
         {% empty %}
-        <div class="col-12 text-center py-5">
-            <p class="text-muted fs-5">Активних оголошень поки немає.</p>
-        </div>
+            <p class="text-muted text-center w-100 py-4">Активних оголошень наразі немає.</p>
         {% endfor %}
-
     </div>
 </div>
+
+<!-- Додаткові стилі для анімації плиток, як на оригінальному OLX -->
+<style>
+    .btn-category-item:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 .5rem 1.5rem rgba(0,0,0,.12)!important;
+    }
+</style>
 {% endblock %}

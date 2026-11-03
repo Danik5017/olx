@@ -1,19 +1,19 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login, logout, authenticate
+from django.contrib.auth.models import User
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
 from django.contrib import messages
-
-# Імпортуємо всі твої оригінальні моделі
+from django.db.models import Q
 from .models import Listing, Category, ListingImage, Favorite, Profile, Chat, Message, Review
-# Імпортуємо твої оригінальні форми та нову форму оновлення користувача
 from .forms import ListingForm, ProfileForm, UserUpdateForm, ProfileUpdateForm
 
 # =====================================================================
 # 1. ГОЛОВНА СТОРІНКА ТА ПОШУК
 # =====================================================================
 def index_view(request):
+    """ Головна сторінка сайту зі стрічкою всіх оголошень """
     listings = Listing.objects.filter(status='ACTIVE')
     search_query = request.GET.get('search', '')
     location_query = request.GET.get('location', '')
@@ -26,7 +26,9 @@ def index_view(request):
     if category_id:
         listings = listings.filter(category_id=category_id)
         
-    categories = Category.objects.all()
+    # Беремо лише кореневі категорії для виведення на головній (наприклад, іконками)
+    categories = Category.objects.filter(parent__isnull=True).prefetch_related('subcategories')
+    
     return render(request, 'index.html', {
         'listings': listings.distinct(),
         'categories': categories,
@@ -35,6 +37,47 @@ def index_view(request):
         'selected_category': category_id,
     })
 
+
+def search_listings_view(request):
+    """ Окрема нова сторінка розширеного пошуку з OLX-фільтрами """
+    query = request.GET.get('q', '').strip()
+    listings = Listing.objects.filter(status='ACTIVE')
+    
+    # 1. Пошук за назвою або описом
+    if query:
+        listings = listings.filter(Q(title__icontains=query) | Q(description__icontains=query))
+        
+    # 2. Фільтр за категорією або її підкатегоріями
+    category_id = request.GET.get('category')
+    if category_id:
+        listings = listings.filter(Q(category_id=category_id) | Q(category__parent_id=category_id))
+        
+    # 3. Додаткові фільтри (ціна, стан, місто)
+    price_min = request.GET.get('price_min')
+    price_max = request.GET.get('price_max')
+    if price_min: 
+        listings = listings.filter(price__gte=price_min)
+    if price_max: 
+        listings = listings.filter(price__lte=price_max)
+        
+    condition = request.GET.get('condition')
+    if condition: 
+        listings = listings.filter(condition=condition)
+        
+    city = request.GET.get('city')
+    if city: 
+        listings = listings.filter(city__icontains=city)
+
+    # Збираємо всі головні категорії з підкатегоріями для лівого випадаючого списку
+    categories = Category.objects.filter(parent__isnull=True).prefetch_related('subcategories')
+
+    context = {
+        'listings': listings.distinct(),
+        'query': query,
+        'current_category': category_id,
+        'categories': categories  # Передаємо категорії для правильного селекту
+    }
+    return render(request, 'search_results.html', context) # Рендерить нову окрему сторінку!
 
 # =====================================================================
 # 2. ДЕТАЛІ ОГОЛОШЕННЯ ТА ОБРАНЕ
@@ -102,27 +145,30 @@ def create_listing_view(request):
 
 
 # =====================================================================
-# 4. СИСТЕМА ПРОФІЛІВ ТА ВІДГУКІВ (Оновлено та додано)
+# 4. СИСТЕМА ПРОФІЛІВ ТА ВІДГУКІВ
 # =====================================================================
-@login_required
-def profile_view(request):
-    """Відображення особистого профілю поточного користувача"""
-    my_listings = Listing.objects.filter(seller=request.user)
-    # Отримуємо відгуки, які одержав поточний користувач
-    reviews = request.user.received_reviews.all()
-    # Середній рейтинг береться з твоєї property average_rating в моделі Profile
-    avg_rating = request.user.profile.average_rating
+def profile_view(request, user_id=None):
+    """ Завантажує профіль за ID або відкриває власний профіль поточного користувача """
+    if user_id is None:
+        if request.user.is_authenticated:
+            user_id = request.user.id
+        else:
+            return redirect('login')
 
+    target_user = get_object_or_404(User, id=user_id)
+    my_listings = Listing.objects.filter(seller=target_user)
+    reviews = target_user.received_reviews.all()
+    avg_rating = target_user.profile.average_rating
+    
     return render(request, 'profile.html', {
         'my_listings': my_listings,
-        'target_user': request.user, # Передаємо для уніфікації шаблону
         'reviews': reviews,
-        'avg_rating': avg_rating
+        'avg_rating': avg_rating,
+        'target_user': target_user
     })
 
 @login_required
 def edit_profile_view(request):
-    """Редагування даних користувача та профілю"""
     profile = request.user.profile
     if request.method == 'POST':
         u_form = UserUpdateForm(request.POST, instance=request.user)
@@ -130,12 +176,10 @@ def edit_profile_view(request):
         if u_form.is_valid() and p_form.is_valid():
             u_form.save()
             p_form.save()
-            messages.success(request, "Ваш профіль успішно оновлено!")
-            return redirect('profile')
+            return redirect('profile', user_id=request.user.id)
     else:
         u_form = UserUpdateForm(instance=request.user)
         p_form = ProfileUpdateForm(instance=profile)
-        
     return render(request, 'edit_profile.html', {
         'u_form': u_form,
         'p_form': p_form
@@ -143,29 +187,19 @@ def edit_profile_view(request):
 
 @login_required
 def add_review_view(request, user_id):
-    """Додавання відгуку продавцю (Нова функція)"""
     if request.method == 'POST':
         target_user = get_object_or_404(User, id=user_id)
-        
-        # Перевірка, щоб не залишати відгук самому собі
-        if request.user == target_user:
-            messages.error(request, "Ви не можете залишити відгук самому собі!")
-            return redirect('index') # Або на сторінку публічного профілю, якщо така є
-            
-        rating = request.POST.get('rating')
-        text = request.POST.get('text')
-        
-        if rating:
-            Review.objects.create(
-                author=request.user,
-                target_user=target_user,
-                rating=int(rating),
-                text=text
-            )
-            messages.success(request, "Відгук успішно додано!")
-            
-    # Повертаємо на головну сторінку після відправки відгуку
-    return redirect('index')
+        if request.user != target_user:
+            rating = request.POST.get('rating')
+            text = request.POST.get('text')
+            if rating:
+                Review.objects.create(
+                    author=request.user,
+                    target_user=target_user,
+                    rating=int(rating),
+                    text=text
+                )
+    return redirect('profile', user_id=user_id)
 
 
 # =====================================================================
@@ -225,37 +259,33 @@ def chat_detail_view(request, pk):
         return redirect('index')
     
     messages_list = chat.messages.all()
-    chat.messages.exclude(sender=request.user).update(is_read=True)
     return render(request, 'chat_detail.html', {
         'chat': chat,
-        'messages': messages_list
+        'messages_list': messages_list
     })
 
 @login_required
 def send_message_view(request, pk):
     chat = get_object_or_404(Chat, pk=pk)
-    if chat.buyer != request.user and chat.listing.seller != request.user:
-        return HttpResponse(status=403)
-        
     if request.method == 'POST':
         text = request.POST.get('text', '').strip()
         if text:
-            message = Message.objects.create(chat=chat, sender=request.user, text=text)
-            return render(request, 'partials/message_item.html', {'message': message})
-    return HttpResponse(status=400)
+            Message.objects.create(
+                chat=chat, 
+                sender=request.user, 
+                text=text
+            )
+            return redirect('chat_detail', pk=chat.id)
+    return redirect('chat_detail', pk=chat.id)
 
-@login_required
 def get_new_messages_view(request, pk):
     chat = get_object_or_404(Chat, pk=pk)
-    if chat.buyer != request.user and chat.listing.seller != request.user:
-        return HttpResponse(status=403)
-    
     messages_list = chat.messages.all()
-    chat.messages.exclude(sender=request.user).update(is_read=True)
-    return render(request, 'partials/messages_loop.html', {'messages': messages_list})
+    return render(request, 'partials/messages_list.html', {'messages_list': messages_list})
+
 
 # =====================================================================
-# 7. СТОРІНКА УМОВ КОРИСТУВАННЯ (Додано)
+# 7. ДОДАТКОВІ СТОРІНКИ
 # =====================================================================
 def terms_view(request):
     return render(request, 'terms.html')
