@@ -1,7 +1,7 @@
 <nav class="navbar navbar-expand-lg navbar-dark sticky-top shadow-sm" style="background-color: var(--olx-brand); padding: 15px 0;">
     <div class="container flex-column gap-3">
         
-        <!-- Верхня панель: Логотип + Кнопки профілю (Є на всіх сторінках) -->
+        <!-- Верхня панель: Логотип + Кнопки профілю -->
         <div class="d-flex align-items-center justify-content-between w-100">
             <a class="navbar-brand fw-bold fs-3 text-white m-0" href="{% url 'index' %}">
                 OLX<span style="color: var(--olx-mint);">.ua</span>
@@ -9,28 +9,68 @@
 
             <div class="d-flex align-items-center gap-3">
                 {% if user.is_authenticated %}
+                    <!-- Іконка повідомлень -->
                     <a href="{% url 'chats_list' %}" class="text-white text-decoration-none fs-5 px-1" title="Повідомлення">
                         <i class="bi bi-chat-left-text"></i>
                     </a>
-                    <a href="{% url 'profile' %}" class="btn btn-outline-light fw-bold py-2 px-3" style="font-size: 15px;">
-                        <i class="bi bi-person-circle me-1"></i> Мій профіль
-                    </a>
-                    <a href="{% url 'create_listing' %}" class="btn fw-bold py-2 px-3" style="background-color: #fff; color: var(--olx-brand); font-size: 15px;">
+
+                    <!-- ОФІЦІЙНИЙ BOOTSTRAP DROPDOWN ПРОФІЛЮ -->
+                    <div class="dropdown">
+                        <a class="nav-link dropdown-toggle text-white text-decoration-none fw-bold d-flex align-items-center gap-2 p-0" 
+                           href="#" role="button" id="olxProfileMenu" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="bi bi-person fs-4"></i> Мій профіль
+                        </a>
+                        
+                        <!-- Випадаюче вікно у стилі OLX -->
+                        <ul class="dropdown-menu dropdown-menu-end p-0 border-0 shadow mt-2" aria-labelledby="olxProfileMenu" style="width: 260px; border-radius: 4px; overflow: hidden; z-index: 2000;">
+                            <!-- Юзер-блок -->
+                            <li class="p-3 d-flex align-items-center gap-3" style="background-color: #f2f4f5; border-bottom: 1px solid #dee2e6;">
+                                <div class="rounded-circle d-flex justify-content-center align-items-center fw-bold text-white" 
+                                     style="width: 45px; height: 46px; background-color: var(--olx-brand); font-size: 18px;">
+                                    {{ user.username|slice:":1"|upper }}
+                                </div>
+                                <div class="fw-bold text-dark fs-5">{{ user.username }}</div>
+                            </li>
+                            
+                            <!-- Пункти меню (Універсальне ім'я 'profile') -->
+                            <li><h6 class="dropdown-header small fw-bold px-3 pt-3 pb-1" style="color: #406367;">Ваш профіль</h6></li>
+                            <li><a class="dropdown-item px-3 py-2 text-dark" href="{% url 'profile' %}">Оголошення</a></li>
+                            <li><a class="dropdown-item px-3 py-2 text-dark" href="{% url 'chats_list' %}">Чат</a></li>
+                            <li><a class="dropdown-item px-3 py-2 text-dark" href="#">Платежі та рахунок OLX</a></li>
+                            <li><a class="dropdown-item px-3 py-2 text-dark" href="{% url 'profile' %}">Рейтинг</a></li>
+                            <li><a class="dropdown-item px-3 py-2 text-dark" href="#">Шукаю роботу</a></li>
+                            <li><a class="dropdown-item px-3 py-2 text-dark" href="#">Роботодавці на OLX <span class="badge bg-info text-dark" style="font-size: 9px; vertical-align: middle;">НОВИНКА</span></a></li>
+                            <li><a class="dropdown-item px-3 py-2 text-dark" href="{% url 'profile' %}">Профіль</a></li>
+                            <li><a class="dropdown-item px-3 py-2 text-dark" href="{% url 'edit_profile' %}">Налаштування</a></li>
+                            <li><a class="dropdown-item px-3 py-2 text-dark border-bottom" href="#"><i class="bi bi-truck me-1"></i> OLX Доставка</a></li>
+                            
+                            <!-- Блок Обрані -->
+                            <li><h6 class="dropdown-header small fw-bold px-3 pt-2 pb-1" style="color: #406367;">Обрані:</h6></li>
+                            <li><a class="dropdown-item px-3 py-2 text-dark d-flex justify-content-between align-items-center" href="{% url 'favorites' %}">Оголошення <span class="badge bg-light text-muted border">{{ global_favorites_count }}</span></a></li>
+                            <li><a class="dropdown-item px-3 py-2 text-dark d-flex justify-content-between align-items-center border-bottom" href="#">Пошуки <span class="badge bg-light text-muted border">0</span></a></li>
+                            
+                            <!-- Кнопка Виходу -->
+                            <li><a class="dropdown-item px-3 py-3 text-dark fw-bold text-center" style="background-color: #fafbfb;" href="{% url 'logout' %}">Вийти</a></li>
+                        </ul>
+                    </div>
+
+                    <!-- Кнопка Подати оголошення -->
+                    <a href="{% url 'create_listing' %}" class="btn fw-bold py-2 px-3" style="background-color: #fff; color: var(--olx-brand); font-size: 15px; border-radius: 4px;">
                         Подати оголошення
                     </a>
                 {% else %}
                     <a href="{% url 'login' %}" class="text-white fw-bold text-decoration-none px-2">Увійти</a>
-                    <a href="{% url 'register' %}" class="btn btn-outline-light fw-bold py-2 px-3">Реєстрація</a>
+                    <a href="{% url 'register' %}" class="btn btn-outline-light fw-bold py-2 px-3" style="border-radius: 4px;">Реєстрація</a>
                 {% endif %}
             </div>
         </div>
 
-        <!-- Нижня панель: Пошуковий рядок (Показується ТІЛЬКИ на головній сторінці '/') -->
+        <!-- Пошуковий рядок (Показується лише на головній сторінці) -->
         {% if request.path == '/' %}
         <form method="GET" action="{% url 'search_listings' %}" class="d-flex w-100 mt-1">
-            <div class="input-group">
-                <input type="text" name="q" value="{{ query|default:'' }}" class="form-control border-0 py-3 ps-4" placeholder="Що шукаєте? Наприклад: авто, телефон, дитячі речі..." style="border-radius: 4px 0 0 4px; font-size: 16px;" required>
-                <button class="btn px-5 fw-bold text-dark" type="submit" style="background-color: var(--olx-mint); border-radius: 0 4px 4px 0; border: none; font-size: 16px;">
+            <div class="input-group shadow-sm">
+                <input type="text" name="q" value="{{ query|default:'' }}" class="form-control border-0 py-3 ps-4" placeholder="Що шукаєте? Наприклад: авто, телефон, дитячі речі..." style="border-radius: 4px 0 0 4px; font-size: 16px; height: 50px;" required>
+                <button class="btn px-5 fw-bold text-dark d-flex align-items-center justify-content-center" type="submit" style="background-color: var(--olx-mint); border-radius: 0 4px 4px 0; border: none; font-size: 16px; height: 50px;">
                     <i class="bi bi-search me-2"></i> Пошук
                 </button>
             </div>
@@ -39,3 +79,10 @@
 
     </div>
 </nav>
+
+<style>
+    .dropdown-menu .dropdown-item:hover {
+        background-color: #f2f4f5 !important;
+        color: #002f34 !important;
+    }
+</style>

@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 
-{% block title %}Мій профіль — OLX{% endblock %}
+{% block title %}Профіль {{ target_user.username }} — OLX{% endblock %}
 
 {% block content %}
 <div class="row g-4">
@@ -8,36 +8,42 @@
     <div class="col-lg-4">
         <div class="card border-0 shadow-sm p-4 bg-white text-center" style="border-radius: 4px;">
             <div class="d-flex flex-column align-items-center mb-3">
-                {% if user.profile.avatar %}
-                    <img src="{{ user.profile.avatar.url }}" class="rounded-circle object-fit-cover mb-3" style="width: 100px; height: 100px;" alt="Аватар">
+                <!-- Замінено з user.profile на target_user.profile -->
+                {% if target_user.profile.avatar %}
+                    <img src="{{ target_user.profile.avatar.url }}" class="rounded-circle object-fit-cover mb-3" style="width: 100px; height: 100px;" alt="Аватар">
                 {% else %}
                     <div class="rounded-circle d-flex justify-content-center align-items-center fw-bold text-white mb-3" style="width: 100px; height: 100px; background-color: var(--olx-brand); font-size: 36px;">
-                        {{ user.username|slice:":1"|upper }}
+                        {{ target_user.username|slice:":1"|upper }}
                     </div>
                 {% endif %}
-                <h2 class="h4 fw-bold m-0" style="color: var(--olx-brand);">{{ user.username }}</h2>
-                <p class="text-muted small">На OLX з {{ user.profile.created_at|date:"M Y" }}</p>
+                <h2 class="h4 fw-bold m-0" style="color: var(--olx-brand);">{{ target_user.username }}</h2>
+                <p class="text-muted small">На OLX з {{ target_user.profile.created_at|date:"M Y" }}</p>
                 
                 <div class="text-warning mb-3">
-                    <i class="bi bi-star-fill"></i> Рейтинг: {{ user.profile.average_rating }} / 5.0
+                    <i class="bi bi-star-fill"></i> Рейтинг: {{ target_user.profile.average_rating }} / 5.0
                 </div>
             </div>
 
             <div class="text-start border-top pt-3 mb-4">
-                <p class="mb-2"><strong><i class="bi bi-telephone"></i> Телефон:</strong> {{ user.profile.phone_number|default:"Не вказано" }}</p>
-                <p class="mb-0"><strong><i class="bi bi-geo-alt"></i> Місто:</strong> {{ user.profile.city|default:"Не вказано" }}</p>
+                <p class="mb-2"><strong><i class="bi bi-telephone"></i> Телефон:</strong> {{ target_user.profile.phone_number|default:"Не вказано" }}</p>
+                <p class="mb-0"><strong><i class="bi bi-geo-alt"></i> Місто:</strong> {{ target_user.profile.city|default:"Не вказано" }}</p>
             </div>
 
-            <a href="{% url 'edit_profile' %}" class="btn w-100 fw-bold py-2 bg-transparent text-center" style="border: 2px solid var(--olx-brand); color: var(--olx-brand); border-radius: 4px;">
-                Редагувати профіль
-            </a>
+            <!-- Кнопка редагування показується тільки власнику профілю -->
+            {% if request.user == target_user %}
+                <a href="{% url 'edit_profile' %}" class="btn w-100 fw-bold py-2 bg-transparent text-center" style="border: 2px solid var(--olx-brand); color: var(--olx-brand); border-radius: 4px;">
+                    Редагувати профіль
+                </a>
+            {% endif %}
         </div>
     </div>
 
-    <!-- Права колонка: Мої оголошення -->
+    <!-- Права колонка: Оголошення користувача -->
     <div class="col-lg-8">
         <div class="card border-0 shadow-sm p-4 bg-white" style="border-radius: 4px;">
-            <h3 class="h4 fw-bold mb-4" style="color: var(--olx-brand);">Мої оголошення</h3>
+            <h3 class="h4 fw-bold mb-4" style="color: var(--olx-brand);">
+                {% if request.user == target_user %}Мої оголошення{% else %}Оголошення автора{% endif %}
+            </h3>
             
             <div class="row row-cols-1 row-cols-sm-2 g-3">
                 {% for listing in my_listings %}
@@ -68,8 +74,10 @@
                 </div>
                 {% empty %}
                 <div class="col-12 text-center py-4">
-                    <p class="text-muted">Ви ще не опублікували жодного оголошення.</p>
-                    <a href="{% url 'create_listing' %}" class="btn text-white fw-bold px-4 py-2" style="background-color: var(--olx-brand); border-radius: 4px;">Додати перше оголошення</a>
+                    <p class="text-muted">Оголошень немає.</p>
+                    {% if request.user == target_user %}
+                        <a href="{% url 'create_listing' %}" class="btn text-white fw-bold px-4 py-2" style="background-color: var(--olx-brand); border-radius: 4px;">Додати перше оголошення</a>
+                    {% endif %}
                 </div>
                 {% endfor %}
             </div>

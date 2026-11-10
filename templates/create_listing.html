@@ -3,111 +3,259 @@
 {% block title %}Створити оголошення — OLX{% endblock %}
 
 {% block content %}
-<div class="row justify-content-center">
-    <div class="col-lg-10">
-        <h1 class="h3 fw-bold mb-4" style="color: var(--olx-brand);">Створити оголошення</h1>
+<style>
+  .olx-card { background: #ffffff !important; border-radius: 4px; padding: 24px; box-shadow: 0 1px 4px rgba(0,0,0,0.05); margin-bottom: 16px; border: none; }
+  .olx-title { font-weight: 700; color: var(--olx-brand); font-size: 1.3rem; margin-bottom: 20px; }
+  .olx-label { font-weight: 700; color: #002f34; font-size: 0.85rem; margin-bottom: 8px; display: block; }
+  .olx-input, .olx-select, .olx-textarea { border-radius: 4px !important; padding: 12px 16px !important; border: 1px solid #ced4da !important; font-size: 1rem !important; background-color: #f2f4f5 !important; color: #002f34 !important; box-shadow: none !important; }
+  .olx-input:focus, .olx-select:focus, .olx-textarea:focus { background-color: #ffffff !important; border-color: var(--olx-brand) !important; }
+  #city-suggestions { border-radius: 4px; overflow: hidden; z-index: 1060 !important; background: white; border: 1px solid #ced4da; position: absolute; width: 100%; max-height: 220px; overflow-y: auto; display: none; margin-top: 2px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+  .suggestion-btn { padding: 12px 16px; font-size: 0.95rem; border: none; border-bottom: 1px solid #f2f4f5; cursor: pointer; text-align: left; width: 100%; background: white; color: #002f34; display: block; }
+  .suggestion-btn:hover { background-color: #f2f4f5; color: var(--olx-brand); }
+  .condition-box { border: 1px solid #ced4da; border-radius: 4px; padding: 12px; flex: 1; text-align: center; cursor: pointer; font-weight: 700; background: #f2f4f5; transition: 0.2s; }
+  .condition-box.active { border-color: var(--olx-brand) !important; background: #eef4f5 !important; color: var(--olx-brand); }
+</style>
+
+<div class="row justify-content-center mt-3">
+  <div class="col-lg-9 col-md-11">
+    <h2 class="fw-bold mb-4" style="color: var(--olx-brand); font-size: 32px;">Створити оголошення</h2>
+    
+    <form method="POST" enctype="multipart/form-data" novalidate>
+      {% csrf_token %}
+      
+      <!-- БЛОК 1: НАЗВА ТА КАТЕГОРІЯ -->
+      <div class="olx-card">
+        <h4 class="olx-title">Опишіть у подробицях</h4>
         
-        <form method="POST" enctype="multipart/form-data">
-            {% csrf_token %}
-            
-            <!-- БЛОК 1: ОПИШІТЬ У ПОДРОБИЦЯХ -->
-            <div class="card border-0 shadow-sm p-4 bg-white mb-3" style="border-radius: 4px;">
-                <h2 class="h5 fw-bold mb-3" style="color: var(--olx-brand);">Опишіть у подробицях</h2>
-                
-                <div class="mb-3">
-                    <label class="form-label text-muted small fw-bold">Незва оголошення*</label>
-                    {{ form.title }}
-                    <div class="form-text text-muted" style="font-size: 11px;">Введіть щонайменше 16 символів</div>
-                </div>
+        <div class="mb-4">
+          <label class="olx-label">Назва оголошення*</label>
+          <input type="text" name="title" id="id_title" class="form-control olx-input" placeholder="Наприклад, iPhone 13 Pro Max 256GB" minlength="16" required>
+          <div class="form-text text-muted d-flex justify-content-between mt-1" style="font-size: 11px;">
+            <span>Введіть щонайменше 16 символів</span>
+            <span id="title-counter">0 / 70</span>
+          </div>
+        </div>
 
-                <div class="mb-2">
-                    <label class="form-label text-muted small fw-bold">Категорія*</label>
-                    {{ form.category }}
-                </div>
+        <div class="mb-2">
+          <label class="olx-label">Категорія*</label>
+          <select name="category" id="id_category" class="form-select olx-select" required>
+            <option value="" disabled selected>Оберіть категорію...</option>
+            {% for cat in categories %}
+              {% if not cat.parent %}
+                <!-- Головна категорія -->
+                <option value="{{ cat.id }}" fw-bold style="background-color: #f2f4f5; font-weight: bold;">
+                  {{ cat.name }}
+                </option>
+                <!-- Підкатегорії цієї категорії -->
+                {% for subcat in cat.subcategories.all %}
+                  <option value="{{ subcat.id }}">
+                    &nbsp;&nbsp;&nbsp;&nbsp;— {{ subcat.name }}
+                  </option>
+                {% endfor %}
+              {% endif %}
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+
+      <!-- БЛОК 2: ФОТО -->
+      <div class="olx-card">
+        <h4 class="olx-title">Фото</h4>
+        <p class="text-muted small mb-3">Перше фото буде на обкладинці оголошення.</p>
+        <div class="position-relative border rounded p-5 text-center bg-light" style="border-style: dashed !important; border-color: #ced4da !important;">
+          <input type="file" name="image" id="id_image" class="position-absolute top-0 start-0 w-100 h-100 opacity-0" multiple accept="image/*" required style="cursor: pointer; z-index: 2;">
+          <div class="py-2">
+            <i class="bi bi-camera fs-1" style="color: var(--olx-brand); opacity: 0.8;"></i>
+            <div class="fw-bold mt-2" style="color: var(--olx-brand);">Додати фото або перетягнути</div>
+            <span class="text-success small fw-bold d-none mt-2" id="file-upload-info">Вибрано файлів: 0</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- БЛОК 3: ПРО ТОВАР -->
+      <div class="olx-card">
+        <h4 class="olx-title">Про товар</h4>
+        <div class="mb-4">
+          <label class="olx-label">Стан*</label>
+          <div class="d-flex gap-3">
+            <div id="box-used" class="condition-box active">Вживане</div>
+            <div id="box-new" class="condition-box">Нове</div>
+          </div>
+          <!-- Приховане радіо-поле для Django бекенду -->
+          <div class="d-none">
+            <input type="radio" name="condition" id="cond_used" value="USED" checked>
+            <input type="radio" name="condition" id="cond_new" value="NEW">
+          </div>
+        </div>
+        <div class="mb-2">
+          <label class="olx-label">Опис*</label>
+          <textarea name="description" id="id_description" class="form-control olx-text-area olx-textarea" rows="6" placeholder="Поділіться деталями вашого товару..." required></textarea>
+          <div class="form-text text-muted d-flex justify-content-between mt-1" style="font-size: 11px;">
+            <span>Пишіть детально, це привабить покупців</span>
+            <span id="desc-counter">0 / 9000</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- БЛОК 4: ВАРТІСТЬ ТА ДОСТАВКА -->
+      <div class="olx-card">
+        <h4 class="olx-title">Ціна та умови</h4>
+        <div class="mb-4">
+          <label class="olx-label">Ціна*</label>
+          <div class="input-group" style="max-width: 250px;">
+            <input type="number" name="price" id="id_price" class="form-control olx-input" placeholder="0" required>
+            <span class="input-group-text bg-light text-dark fw-bold border-start-0 px-3" style="border-color: #ced4da;">грн.</span>
+          </div>
+        </div>
+        <div class="border-top pt-3">
+          <div class="form-check form-switch p-0 d-flex align-items-center justify-content-between">
+            <div>
+              <label class="form-check-label fw-bold text-dark d-block" for="id_olx_delivery" style="font-size: 15px;">Активувати OLX Доставку</label>
+              <span class="text-muted small">Безпечна угода: відправка через Нову Пошту</span>
             </div>
+            <input class="form-check-input m-0" type="checkbox" name="olx_delivery" id="id_olx_delivery" style="width: 45px; height: 24px; cursor: pointer; box-shadow: none;">
+          </div>
+        </div>
+      </div>
 
-            <!-- БЛОК 2: ФОТО -->
-            <div class="card border-0 shadow-sm p-4 bg-white mb-3" style="border-radius: 4px;">
-                <h2 class="h5 fw-bold mb-1" style="color: var(--olx-brand);">Фото</h2>
-                <p class="text-muted small mb-3">Перше фото буде на обкладинці оголошення. Перетягніть, щоб змінити порядок.</p>
-                
-                <!-- Інпут вибору файлів, оформлений під інтерфейс OLX -->
-                <div class="mb-3">
-                    <div class="position-relative border rounded p-4 text-center bg-light" style="border-style: dashed !important;">
-                        <input type="file" name="image" class="position-absolute top-0 start-0 w-100 h-100 opacity-0" multiple accept="image/*" required style="cursor: pointer;">
-                        <div class="py-2">
-                            <i class="bi bi-camera fs-1" style="color: var(--olx-brand);"></i>
-                            <div class="fw-bold mt-2" style="color: var(--olx-brand);">Додати фото або перетягнути</div>
-                        </div>
-                    </div>
-                </div>
+      <!-- СЕКЦІЯ 5: МІСЦЕЗНАХОДЖЕННЯ (ЖИВИЙ АВТОКОМПЛІТ ЯК НА ІНШОМУ САЙТІ) -->
+      <div class="olx-card">
+        <h4 class="olx-title">Місцезнаходження*</h4>
+        <div class="row">
+          <div class="col-md-7 position-relative">
+            <label class="olx-label">Місто доставки</label>
+            <div class="position-relative">
+              <input type="text" id="city-input" class="form-control olx-input w-100" placeholder="Введіть назву міста..." autocomplete="off" required>
+              <!-- Фінальне поле з ім'ям city, яке Django отримає в request.POST -->
+              <input type="hidden" name="city" id="city-final" required>
+              <div id="city-suggestions" class="shadow-lg"></div>
             </div>
+          </div>
+        </div>
+      </div>
 
-            <!-- БЛОК 3: ПРО ТОВАР -->
-            <div class="card border-0 shadow-sm p-4 bg-white mb-3" style="border-radius: 4px;">
-                <h2 class="h5 fw-bold mb-3" style="color: var(--olx-brand);">Про товар</h2>
-                
-                <div class="mb-3">
-                    <label class="form-label text-muted small fw-bold">Стан*</label>
-                    {{ form.condition }}
-                </div>
+      <!-- КНОПКИ ДІЇ -->
+      <div class="d-flex justify-content-end gap-3 mb-5">
+        <button type="button" class="btn btn-light px-4 py-2.5 fw-bold border" style="color: var(--olx-brand);" onclick="window.history.back();">Скасувати</button>
+        <button type="submit" class="btn px-5 py-2.5 text-white fw-bold border-0" style="background-color: var(--olx-brand); font-size: 16px;">Опублікувати</button>
+      </div>
 
-                <div class="mb-3">
-                    <label class="form-label text-muted small fw-bold">Опис*</label>
-                    {{ form.description }}
-                    <div class="form-text text-muted d-flex justify-content-between" style="font-size: 11px;">
-                        <span>Пишіть детально, це привабить покупців</span>
-                        <span>0 / 9000</span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- БЛОК 4: БЕЗПЕКА ТА ДОСТАВКА -->
-            <div class="card border-0 shadow-sm p-4 bg-white mb-3" style="border-radius: 4px;">
-                <h2 class="h5 fw-bold mb-3" style="color: var(--olx-brand);">Доставка</h2>
-                <div class="form-check form-switch p-0 ps-5 d-flex align-items-center gap-2">
-                    {{ form.olx_delivery }}
-                    <label class="form-check-label fw-bold" style="color: var(--olx-brand);">Активувати OLX Доставку</label>
-                </div>
-            </div>
-
-            <!-- БЛОК 5: ВАРТІСТЬ -->
-            <div class="card border-0 shadow-sm p-4 bg-white mb-3" style="border-radius: 4px;">
-                <h2 class="h5 fw-bold mb-3" style="color: var(--olx-brand);">Ціна</h2>
-                <div class="w-50">
-                    <div class="input-group">
-                        {{ form.price }}
-                        <span class="input-group-text bg-transparent border-start-0 text-muted">грн.</span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- БЛОК 6: МІСЦЕЗНАХОДЖЕННЯ -->
-            <div class="card border-0 shadow-sm p-4 bg-white mb-4" style="border-radius: 4px;">
-                <h2 class="h5 fw-bold mb-3" style="color: var(--olx-brand);">Місцезнаходження*</h2>
-                <div class="row g-3">
-                    <div class="col-md-6">
-                        <label class="form-label text-muted small fw-bold">Місто</label>
-                        {{ form.city }}
-                    </div>
-                    <div class="col-md-6">
-                        <label class="form-label text-muted small fw-bold">Район</label>
-                        {{ form.district }}
-                    </div>
-                </div>
-            </div>
-
-            <!-- КНОПКИ ДІЇ -->
-            <div class="d-flex justify-content-end gap-3 mb-5">
-                <button type="button" class="btn btn-light px-4 py-3 fw-bold border" style="color: var(--olx-brand); border-radius: 4px;" onclick="window.history.back();">
-                    Передперегляд
-                </button>
-                <button type="submit" class="btn px-5 py-3 text-white fw-bold border-0" style="background-color: var(--olx-brand); font-size: 16px; border-radius: 4px;">
-                    Опублікувати
-                </button>
-            </div>
-
-        </form>
-    </div>
+    </form>
+  </div>
 </div>
+
+<!-- СКРИПТ ПОЛНОЙ АВТОНОМНОЙ СВЯЗКИ С НОВОЙ ПОШТОЙ -->
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const apiKey = 'e3b4bf147d7d5844a390187321b61f87';
+    const apiUrl = 'https://api.novaposhta.ua/v2.0/json/';
+    
+    const cityInput = document.getElementById('city-input');
+    const cityFinal = document.getElementById('city-final');
+    const citySuggestions = document.getElementById('city-suggestions');
+    
+    const cleanName = (s) => { 
+        let p = s.split(','); 
+        return p.length >= 2 ? p[0].trim() + ", " + p[p.length-1].trim() : s; 
+    };
+
+    // Живий пошук міст по API Нової Пошти
+    cityInput.addEventListener('input', async () => {
+        const q = cityInput.value.trim();
+        if (q.length < 2) { 
+            citySuggestions.style.display = 'none'; 
+            return; 
+        }
+        try {
+            const res = await fetch(apiUrl, { 
+                method: 'POST', 
+                headers: { 'Content-Type': 'application/json' }, 
+                body: JSON.stringify({ 
+                    apiKey: apiKey, 
+                    modelName: "Address", 
+                    calledMethod: "searchSettlements", 
+                    methodProperties: { CityName: q, Limit: "10" }
+                }) 
+            });
+            const data = await res.json();
+            if (data.success && data.data && data.data[0].Addresses.length > 0) {
+                citySuggestions.innerHTML = data.data[0].Addresses.map(c => {
+                    const name = cleanName(c.Present);
+                    const safeName = name.replace(/'/g, "\\'").replace(/"/g, "&quot;");
+                    return '<button type="button" class="suggestion-btn" data-name="' + safeName + '">' + name + '</button>';
+                }).join('');
+                citySuggestions.style.display = 'block';
+                
+                // Навішуємо кліки на згенеровані кнопки результатів пошуку
+                document.querySelectorAll('.suggestion-btn').forEach(function(btn) {
+                    btn.addEventListener('click', function() {
+                        var selectedName = this.getAttribute('data-name');
+                        cityInput.value = selectedName;
+                        cityFinal.value = selectedName;
+                        citySuggestions.style.display = 'none';
+                    });
+                });
+            } else {
+                citySuggestions.style.display = 'none';
+            }
+        } catch (e) { 
+            console.error(e); 
+        }
+    });
+
+    // Ховаємо підказки, якщо клікнули в будь-яке інше місце сторінки
+    document.addEventListener('click', function (e) {
+        if (e.target !== cityInput && !citySuggestions.contains(e.target)) {
+            citySuggestions.style.display = 'none';
+        }
+    });
+
+    // Лічильники символів назви та опису
+    var tInput = document.getElementById("id_title");
+    var tCounter = document.getElementById("title-counter");
+    if (tInput && tCounter) {
+        tInput.addEventListener("input", function() {
+            tCounter.innerText = this.value.length + " / 70";
+        });
+    }
+
+    var dInput = document.getElementById("id_description");
+    var dCounter = document.getElementById("desc-counter");
+    if (dInput && dCounter) {
+        dInput.addEventListener("input", function() {
+            dCounter.innerText = this.value.length + " / 9000";
+        });
+    }
+
+    // Текст кількості вибраних зображень
+    var fInput = document.getElementById("id_image");
+    var fInfo = document.getElementById("file-upload-info");
+    if (fInput && fInfo) {
+        fInput.addEventListener("change", function() {
+            fInfo.innerText = "Вибрано файлів: " + this.files.length;
+            fInfo.classList.remove("d-none");
+        });
+    }
+
+    // Стилізація та логіка перемикання Стану товару (Нове/Вживане)
+    var boxUsed = document.getElementById("box-used");
+    var boxNew = document.getElementById("box-new");
+    var condUsed = document.getElementById("cond_used");
+    var condNew = document.getElementById("cond_new");
+
+    if (boxUsed && boxNew && condUsed && condNew) {
+        boxUsed.addEventListener("click", function() {
+            condUsed.checked = true;
+            boxUsed.classList.add("active");
+            boxNew.classList.remove("active");
+        });
+        boxNew.addEventListener("click", function() {
+            condNew.checked = true;
+            boxNew.classList.add("active");
+            boxUsed.classList.remove("active");
+        });
+    }
+});
+</script>
 {% endblock %}
+

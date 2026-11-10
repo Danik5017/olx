@@ -9,13 +9,15 @@ urlpatterns = [
     path('listing/<int:pk>/favorite/', views.toggle_favorite_view, name='toggle_favorite'),
     path('listing/add/', views.create_listing_view, name='create_listing'),
     path('favorites/', views.favorites_view, name='favorites'),
-    
-    # Система профілів та відгуків
-    path('profile/', views.profile_view, name='profile_current'),  # Власний профіль БЕЗ ID
-    path('profile/<int:user_id>/', views.profile_view, name='profile'),  # Чужий профіль З ID
+
+    # Додаємо два шляхи з ОДНАКОВИМ ім'ям 'profile'
+    path('profile/', views.profile_view, name='profile'),  # Тепер {% url 'profile' %} без аргументів не буде падати!
+    path('profile/<int:user_id>/', views.profile_view, name='profile'),  # Для перегляду чужих профілів з ID
     path('profile/edit/', views.edit_profile_view, name='edit_profile'),
     path('profile/<int:user_id>/add-review/', views.add_review_view, name='add_review'),
-
+    
+    # Додаємо шлях для перегляду відгуків користувача
+    path('profile/<int:user_id>/reviews/', views.user_reviews_view, name='user_reviews'),
     
     # URL системи повідомлень
     path('chats/', views.chats_list_view, name='chats_list'),

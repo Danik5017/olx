@@ -55,29 +55,29 @@ def search_listings_view(request):
     # 3. Додаткові фільтри (ціна, стан, місто)
     price_min = request.GET.get('price_min')
     price_max = request.GET.get('price_max')
-    if price_min: 
-        listings = listings.filter(price__gte=price_min)
-    if price_max: 
-        listings = listings.filter(price__lte=price_max)
+    if price_min: listings = listings.filter(price__gte=price_min)
+    if price_max: listings = listings.filter(price__lte=price_max)
         
     condition = request.GET.get('condition')
-    if condition: 
-        listings = listings.filter(condition=condition)
+    if condition: listings = listings.filter(condition=condition)
         
     city = request.GET.get('city')
-    if city: 
-        listings = listings.filter(city__icontains=city)
+    if city: listings = listings.filter(city__exact=city) # Точний пошук замість icontains
 
-    # Збираємо всі головні категорії з підкатегоріями для лівого випадаючого списку
+    # Збираємо всі головні категорії з підкатегоріями для лівого селекту
     categories = Category.objects.filter(parent__isnull=True).prefetch_related('subcategories')
+
+    # Отримуємо список усіх унікальних міст з бази оголошень для випадаючого списку
+    unique_cities = Listing.objects.filter(status='ACTIVE').values_list('city', flat=True).distinct().order_by('city')
 
     context = {
         'listings': listings.distinct(),
         'query': query,
         'current_category': category_id,
-        'categories': categories  # Передаємо категорії для правильного селекту
+        'categories': categories,
+        'unique_cities': unique_cities  # Передаємо список міст
     }
-    return render(request, 'search_results.html', context) # Рендерить нову окрему сторінку!
+    return render(request, 'search_results.html', context)
 
 # =====================================================================
 # 2. ДЕТАЛІ ОГОЛОШЕННЯ ТА ОБРАНЕ
@@ -141,7 +141,13 @@ def create_listing_view(request):
             return redirect('product_detail', pk=listing.pk)
     else:
         form = ListingForm()
-    return render(request, 'create_listing.html', {'form': form})
+        
+    categories = Category.objects.filter(parent__isnull=True).prefetch_related('subcategories')
+    
+    return render(request, 'create_listing.html', {
+        'form': form,
+        'categories': categories
+    })
 
 
 # =====================================================================
@@ -153,7 +159,7 @@ def profile_view(request, user_id=None):
         if request.user.is_authenticated:
             user_id = request.user.id
         else:
-            return redirect('login')
+            return redirect('login')  # Якщо анонім спробує зайти — відправляємо на вхід
 
     target_user = get_object_or_404(User, id=user_id)
     my_listings = Listing.objects.filter(seller=target_user)
@@ -289,3 +295,13 @@ def get_new_messages_view(request, pk):
 # =====================================================================
 def terms_view(request):
     return render(request, 'terms.html')
+
+def user_reviews_view(request, user_id):
+    """ Окрема сторінка для перегляду всіх відгуків про користувача """
+    target_user = get_object_or_404(User, id=user_id)
+    reviews = target_user.received_reviews.all()
+    
+    return render(request, 'user_reviews.html', {
+        'target_user': target_user,
+        'reviews': reviews
+    })

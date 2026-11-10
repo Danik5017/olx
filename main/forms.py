@@ -16,7 +16,6 @@ class ListingForm(forms.ModelForm):
             'condition': forms.Select(attrs={'class': 'form-select py-2'}),
             'description': forms.Textarea(attrs={'class': 'form-control py-2', 'rows': 5, 'placeholder': 'Опишіть свій товар...'}),
             'city': forms.TextInput(attrs={'class': 'form-control py-2', 'placeholder': ''}),
-            'district': forms.TextInput(attrs={'class': 'form-control py-2', 'placeholder': ''}),
             'olx_delivery': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
         }
 
